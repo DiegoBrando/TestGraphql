@@ -129,6 +129,32 @@ const RootQuery= new GraphQLObjectType({
 
 });
 
+const Mutation= new GraphQLObjectType({
+  name:'Mutation',
+  fields:{
+    AddReview:{
+      type: new GraphQLList(ReviewType),
+      args:{
+        locationid:{type:GraphQLString},
+        comment:{type:GraphQLString},
+        stars:{type:GraphQLString},
+        userid:{type:GraphQLString}
+      },
+      resolve(parent,args){
+        return new Promise((resolve,reject)=>{pool.query("INSERT INTO TestReviews(locationid,userid,stars,comment) Values($1,$2,$3,$4) Returning *;",[args.locationid,args.userid,args.stars,args.comment],(errors,results)=>{
+          console.log(args.results)
+
+
+          resolve(results.rows)
+        })
+      }
+    )
+    }
+    }
+  }
+})
+
 module.exports=new GraphQLSchema({
-  query:RootQuery
+  query:RootQuery,
+  mutation:Mutation
 });
