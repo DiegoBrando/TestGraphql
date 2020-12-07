@@ -3,7 +3,8 @@ const _=require('lodash');
 const Pool = require('pg').Pool
 const cors = require('cors')
 const pg = require('pg')
-
+const db = require('../queries/queries.js');
+const DataLoader=require('dataloader')
 const pool = new Pool({
   user: 'commonuser',
   host: 'anthonyoakeyfgc.cecxfun782s2.us-east-2.rds.amazonaws.com',
@@ -11,11 +12,11 @@ const pool = new Pool({
   password: 'password',
   port: 5432,
 })
-
+//https://gist.github.com/JoeKarlsson/ca1d2f3e95fa2412feb418aedfbf9844
 
 const {GraphQLObjectType,GraphQLString,GraphQLSchema,GraphQLID,GraphQLInt,GraphQLList}=graphql;
 
-
+const getusers=new DataLoader(db(pool).GetUsersByID);
 
 
 const UserType=new GraphQLObjectType({
@@ -37,15 +38,10 @@ const LocationType=new GraphQLObjectType({
     details:{type:GraphQLString},
     reviews:{
       type:  new GraphQLList(ReviewType),
-      resolve(parent,args){
-        return new Promise((resolve,reject)=>{pool.query('Select * from TestReviews where locationid=$1;',[parent.locationid],(errors,results)=>{
-          console.log('TEST2')
-          console.log(results)
-           resolve(results.rows)
-        })
+      resolve(parent,args) {
+        return  db(pool).getReviewsByLocation(parent.locationid)
       }
-    )
-    }
+
   }
 
 })
@@ -59,25 +55,13 @@ const ReviewType=new GraphQLObjectType({
       type: new GraphQLList( LocationType),
 
       resolve(parent,args){
-        return new Promise((resolve,reject)=>{pool.query('Select * from TestLocations where locationid=$1;',[parent.locationid],(errors,results)=>{
-          console.log('TEST3')
-          console.log(results)
-           resolve(results.rows)
-        })
-      }
-    )
+        return db(pool).GetLocationByID(parent.locationid)
     }
       },
     user:{
       type: new  GraphQLList(UserType),
       resolve(parent,args){
-        return new Promise((resolve,reject)=>{pool.query('Select * from TestUsers where userid=$1;',[parent.userid],(errors,results)=>{
-          console.log('TEST4')
-          console.log(results)
-           resolve(results.rows)
-        })
-      }
-    )
+        return getusers.load(parent.userid)
     }
     },
     stars:{type:GraphQLString},
@@ -100,26 +84,14 @@ const RootQuery= new GraphQLObjectType({
     locations:{
       type:new GraphQLList(LocationType),
       resolve(parent,args){
-        return new Promise((resolve,reject)=>{pool.query('Select * from TestLocations;',(errors,results)=>{
-          console.log('TEST')
-          console.log(results)
-           resolve(results.rows)
-        })
-      }
-    )
+        return db(pool).GetAllLocations()
     }
   },
     location:{
       type: new GraphQLList(LocationType),
       args:{id:{type:GraphQLID}},
       resolve(parent,args){
-        return new Promise((resolve,reject)=>{pool.query('Select * from TestLocations where locationid=$1;',[args.id],(errors,results)=>{
-          console.log('TEST')
-          console.log(results)
-           resolve(results.rows)
-        })
-      }
-    )
+        return db(pool).GetLocationByID(args.id)
     }
     }
 

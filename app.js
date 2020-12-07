@@ -1,11 +1,14 @@
 const express= require('express');
 const {graphqlHTTP}=require('express-graphql');
+var  bodyParser =require('body-parser');
+const { graphqlExpress } = require( 'apollo-server-express');
 
 const schema=require('./schema/schema');
 const app=express();
 
 
-app.use('/graphql',graphqlHTTP({
+
+app.use('/graphql',bodyParser.json(),graphqlExpress({
 schema,
 graphiql:true
 
