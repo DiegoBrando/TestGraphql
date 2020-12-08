@@ -2,7 +2,7 @@
 
 
 const graphql=require('graphql');
-const db = require('../../queries/queries.js');
+const queries = require('../../queries/queries.js');
 const locationstypes=require('../Locations/Locations.js');
 const usertypes=require('../Users/Users.js')
 const dataloader=require('../../Loaders/Users/Users_Loaders.js');
@@ -20,7 +20,7 @@ const ReviewType=new GraphQLObjectType({
     location:{//queries main database with commonuser to get all location information, gets passed a locationid in GraphQLID format, returns all location information
       type: new GraphQLList( locationstypes.LocationType),
       resolve(parent,args){
-        return new db.Locations(pools.mainpoolcommonquery).GetLocationByID(args.id)
+        return new queries.Locations(pools.mainpoolcommonquery).GetLocationByID(args.id)
     }
       },
 
